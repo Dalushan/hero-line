@@ -52,12 +52,14 @@ func _redraw_grid() -> void:
 			var color := Color(0.22, 0.24, 0.28)
 			match c:
 				TDGrid.Cell.GROUND:
-					color = Color(0.35, 0.30, 0.22)
+					color = Color(0.85, 0.25, 0.25)
+				TDGrid.Cell.PATH:
+					color = Color(0.38, 0.32, 0.22)
 				TDGrid.Cell.BUILDABLE:
-					color = Color(0.20, 0.26, 0.22)
+					color = Color(0.20, 0.30, 0.24)
 				TDGrid.Cell.BLOCKED:
-					color = Color(0.30, 0.30, 0.36)
-			draw_rect(Rect2(), Color(0, 0, 0, 0))
+					color = Color(0.30, 0.30, 0.38)
+			# 格子用 ColorRect 绘制（不能在此处调 draw_rect —— 不在 _draw() 上下文）
 			var cell_node := ColorRect.new()
 			cell_node.color = color
 			cell_node.position = rect.position

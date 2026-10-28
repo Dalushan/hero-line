@@ -1,0 +1,53 @@
+{
+  "towers": [
+    {
+      "id": "tower_arrow",
+      "name": "箭塔",
+      "cost": 120,
+      "dmg": 25,
+      "interval": 0.8,
+      "range": 4.0,
+      "splash": 0.0,
+      "slow": 0.0,
+      "slowTime": 0.0,
+      "desc": "单体速射塔，廉价且稳定，前期主力"
+    },
+    {
+      "id": "tower_frost",
+      "name": "霜塔",
+      "cost": 190,
+      "dmg": 12,
+      "interval": 1.0,
+      "range": 3.5,
+      "splash": 0.0,
+      "slow": 0.45,
+      "slowTime": 1.5,
+      "desc": "减速敌人 45%，持续 1.5s，为其他塔创造输出窗口"
+    },
+    {
+      "id": "tower_cannon",
+      "name": "炮塔",
+      "cost": 300,
+      "dmg": 75,
+      "interval": 2.2,
+      "range": 5.0,
+      "splash": 1.6,
+      "slow": 0.0,
+      "slowTime": 0.0,
+      "desc": "范围溅射伤害，清理密集小兵群"
+    },
+    {
+      "id": "tower_lightning",
+      "name": "雷塔",
+      "cost": 420,
+      "dmg": 45,
+      "interval": 1.2,
+      "range": 4.5,
+      "splash": 0.0,
+      "slow": 0.0,
+      "slowTime": 0.0,
+      "chain": 3,
+      "desc": "闪电链，最多连锁 3 个目标"
+    }
+  ]
+}

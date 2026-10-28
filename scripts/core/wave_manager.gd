@@ -78,8 +78,10 @@ static func build_wave(wave: int, rng: TDRng) -> Array:
 
 	var chosen: Array = rng.weighted_sample(pool, weights, mini(group_count, pool.size()))
 	for i in range(chosen.size()):
-		var eid: String = chosen[i]
-		var is_new := eid == available[available.size() - 1] and available.size() > 1
+		var eid: String = String(chosen[i])
+		var is_new: bool = false
+		if available.size() > 1 and eid == String(available[available.size() - 1]):
+			is_new = true
 		var base_count: int = int(round(4.0 + wave * 0.8))
 		var count: int = maxi(3, base_count + rng.randi_range(-1, 2))
 		if is_new:

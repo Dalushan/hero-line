@@ -28,14 +28,17 @@ var rng: TDRng
 
 var heroes: Array = []             ## Array[Dictionary]
 var enemies: Array = []            ## Array[Dictionary]
+var towers: Array = []             ## Array[Dictionary]  防御塔
 var selected_hero_ids: Array = []  ## 已通过支援系统选过的英雄
 var support_cards: Array = []      ## 当前待选的卡牌
 var wave_groups: Array = []        ## 当前波次编队
 var pending_spawns: Array = []     ## 待出怪队列
 var run_seed: int = 0
 
+var shop_offers: Array = []        ## 当前商店候选
 var kills: int = 0
 var gold_earned: int = 0
+var gold_spent: int = 0
 var waves_cleared: int = 0
 
 

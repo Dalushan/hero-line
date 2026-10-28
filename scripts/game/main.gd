@@ -5,6 +5,7 @@ extends Node
 const HERO_DEF_PATH := "res://data/hero_def.json"
 const ITEM_DEF_PATH := "res://data/item_def.json"
 const ENEMY_DEF_PATH := "res://data/enemy_def.json"
+const TOWER_DEF_PATH := "res://data/tower_def.json"
 
 var state: TDRunState
 var battlefield: Node2D
@@ -13,7 +14,9 @@ var support_panel: Control
 var _heroes_data: Array = []
 var _items_data: Array = []
 var _enemies_data: Array = []
+var _towers_data: Array = []
 var _enemy_def_map: Dictionary = {}
+var _tower_def_map: Dictionary = {}
 
 var _wave_timer := 0.0
 var _spawn_queue: Array = []
@@ -21,14 +24,13 @@ var _spawn_idx := 0
 var _time := 0.0
 var _enemy_nodes: Array = []
 var _hero_nodes: Dictionary = {}
+var _tower_nodes: Dictionary = {}
 
 
 func _ready() -> void:
 	_load_data()
 	battlefield = get_node_or_null("Battlefield")
 	support_panel = get_node_or_null("SupportPanel")
-	if battlefield:
-		battlefield.connect("tree_exited", Callable())
 	_start_new_run()
 
 
@@ -39,6 +41,10 @@ func _load_data() -> void:
 	_enemies_data = enemies
 	for e in enemies:
 		_enemy_def_map[String(e.get("id", ""))] = e
+	var towers := _load_json_array(TOWER_DEF_PATH, "towers")
+	_towers_data = towers
+	for t in towers:
+		_tower_def_map[String(t.get("id", ""))] = t
 
 
 func _load_json_array(path: String, key: String) -> Array:
@@ -59,6 +65,14 @@ func _start_new_run() -> void:
 	state = TDRunState.new(TDRng.make_random_seed())
 	state.base_hp_max = 1000
 	state.base_hp = 1000
+	state.gold = 250
+	# 开局赠送 1 名初始英雄（否则前 4 波无防守，必然被平推）
+	var start_def := _find_hero_def("hero_zhan_guang")
+	if not start_def.is_empty():
+		var h := TDBattle.create_hero(start_def, 1)
+		h["_def"] = start_def
+		h["id"] = "h_start"
+		state.heroes.append(h)
 	if battlefield and battlefield.has_method("setup"):
 		battlefield.setup(state)
 	_begin_prepare()
@@ -67,12 +81,78 @@ func _start_new_run() -> void:
 func _begin_prepare() -> void:
 	state.advance_phase(TDRunState.Phase.PREPARING)
 	_wave_timer = TDBalance.wave_interval()
+	# 波次间治疗（塔防标准约定）
+	for h in state.heroes:
+		TDBattle.heal_between_waves(h)
+	# 冷却重置（_time 是全局时间，但每波开始应让单位立即可行动）
+	for h in state.heroes:
+		h["_next_atk"] = 0.0
+	for tw in state.towers:
+		tw["next_atk"] = 0.0
+	# 自动布防 + 建塔（后续接入玩家点击建造）
+	_auto_place_heroes()
+	_auto_build_towers()
+	_refresh_shop()
+
+
+func _auto_place_heroes() -> void:
+	# 英雄优先站进攻路线（挡住敌人 → 敌人被迫交战 → 持续输出）
+	for h in state.heroes:
+		if bool(h.get("_placed", false)):
+			continue
+		var spot := _pick_placement()
+		if spot == Vector2i(-1, -1):
+			continue
+		h["cell"] = spot
+		h["_placed"] = true
+		state.grid.set_cell(spot, TDGrid.Cell.BLOCKED)
+		state.grid.recompute_flow()
+		_spawn_hero_node(h)
+
+
+func _auto_build_towers() -> void:
+	# AI 建塔：买得起的最便宜塔
+	var guard := 0
+	while guard < 50:
+		guard += 1
+		var pick := {}
+		var best_cost := 999999
+		for t in _towers_data:
+			var c := int(t.get("cost", 0))
+			if c <= state.gold and c < best_cost:
+				best_cost = c
+				pick = t
+		if pick.is_empty():
+			return
+		var cell := _pick_tower_cell()
+		if cell == Vector2i(-1, -1):
+			return
+		var tower := TDTower.create_tower(pick, cell, state.towers.size())
+		state.towers.append(tower)
+		state.grid.set_cell(cell, TDGrid.Cell.BLOCKED)
+		state.grid.recompute_flow()
+		state.gold -= int(pick.get("cost", 0))
+		_spawn_tower_node(tower)
+
+
+func _refresh_shop() -> void:
+	var mult := TDBalance.shop_price_mult(state.wave)
+	var pool := TDBalance.SHOP_ITEMS.duplicate()
+	pool.shuffle()
+	var offers: Array = []
+	for i in range(mini(3, pool.size())):
+		var it: Dictionary = pool[i].duplicate()
+		it["cost"] = int(round(float(it.get("cost", 100)) * mult))
+		offers.append(it)
+	state.shop_offers = offers
 
 
 func _begin_wave() -> void:
 	state.wave += 1
 	state.advance_phase(TDRunState.Phase.RUNNING)
 	state.wave_groups = TDWaveManager.build_wave(state.wave, state.rng)
+	print("[wave %d] 开始 | 英雄 %d | 塔 %d | 金币 %d | 基地HP %d" % [
+		state.wave, state.heroes.size(), state.towers.size(), state.gold, state.base_hp])
 	_spawn_queue.clear()
 	_spawn_idx = 0
 	for g in state.wave_groups:
@@ -86,6 +166,8 @@ func _begin_wave() -> void:
 				"at": float(g.get("delay", 0.0)) + float(k) * float(g.get("interval", 1.0)),
 				"seed": k,
 			})
+	# ★ 必须按出场时间排序：多组编队 delay 不同，不排序会卡住出怪
+	_spawn_queue.sort_custom(func(a, b): return float(a["at"]) < float(b["at"]))
 
 
 func _process(delta: float) -> void:
@@ -116,42 +198,29 @@ func _tick_running(delta: float) -> void:
 		_spawn_enemy_node(e)
 		_spawn_idx += 1
 
-	# 敌人推进
+	# 敌人推进（规则统一在 core/engagement.gd）
 	for e in state.enemies:
 		if not bool(e.get("alive", false)):
 			continue
-		var target := _nearest_hero_in_range(e)
-		if not target.is_empty():
-			var cd: float = float(e.get("atk_interval", 1.5))
-			if _time >= float(e.get("_next_atk", 0.0)):
-				TDBattle.enemy_attack_hero(e, target)
-				e["_next_atk"] = _time + cd
-			continue
-		var step := state.grid.next_step(e["cell"])
-		if step == Vector2i.ZERO:
-			state.damage_base(int(e.get("damage_to_base", 10)))
-			e["alive"] = false
+		var st := TDEngagement.update_enemy(e, state, _time, delta)
+		if st == TDEngagement.STATUS_REACHED_BASE:
 			_remove_enemy_node(e)
 			if state.is_game_over():
 				_on_defeat()
 				return
-			continue
-		e["cell"] = e["cell"] + step
-		_move_enemy_node(e)
+		else:
+			_move_enemy_node(e)
 
 	# 英雄攻击
 	for h in state.heroes:
-		if not bool(h.get("alive", false)):
+		TDEngagement.hero_attack(h, state, _time)
+
+	# 防御塔攻击
+	for tw in state.towers:
+		if _time < float(tw.get("next_atk", 0.0)):
 			continue
-		var cd: float = float(h.get("stats", {}).get("atk_interval", 1.0))
-		if _time < float(h.get("_next_atk", 0.0)):
-			continue
-		var tgt := _nearest_enemy_in_range(h)
-		if tgt.is_empty():
-			h["_next_atk"] = _time + 0.1
-			continue
-		TDBattle.hero_attack_enemy(h, tgt, _time)
-		h["_next_atk"] = _time + cd
+		tw["_now"] = _time
+		TDTower.attack(tw, state.enemies, state.grid, _time)
 
 	# 结算死亡
 	_settle_deaths()
@@ -283,14 +352,40 @@ func _find_hero_def(id: String) -> Dictionary:
 
 
 func _pick_placement() -> Vector2i:
-	var cells := state.grid.buildable_cells()
-	if cells.is_empty():
-		return Vector2i(-1, -1)
-	cells.sort_custom(func(a, b): return state.grid.dist_to_path(a) < state.grid.dist_to_path(b))
-	for c in cells:
-		if state.grid.can_place(c)["ok"]:
+	# 英雄站位：优先进攻路线格（靠前 = 离基地远 = 敌人来的方向）
+	var path_cells := state.grid.tower_cells()
+	path_cells.sort_custom(func(a, b):
+		return state.grid.flow_dist[state.grid.idx(a.x, a.y)] > state.grid.flow_dist[state.grid.idx(b.x, b.y)])
+	for c in path_cells:
+		if state.grid.can_place(c, TDGrid.PlaceKind.HERO)["ok"]:
+			return c
+	# 退而求其次：贴路线的空地
+	var zone_cells := state.grid.hero_cells()
+	zone_cells.sort_custom(func(a, b): return state.grid.dist_to_path(a) < state.grid.dist_to_path(b))
+	for c in zone_cells:
+		if state.grid.can_place(c, TDGrid.PlaceKind.HERO)["ok"]:
 			return c
 	return Vector2i(-1, -1)
+
+
+func _pick_tower_cell() -> Vector2i:
+	# 塔位：路线格，且与已有塔保持距离（覆盖全路线而不是堆一处）
+	var cells := state.grid.tower_cells()
+	var best := Vector2i(-1, -1)
+	var best_score := -1.0
+	for c in cells:
+		if not state.grid.can_place(c, TDGrid.PlaceKind.TOWER)["ok"]:
+			continue
+		var min_dist := 9999.0
+		for t in state.towers:
+			var tc: Vector2i = t.get("cell", Vector2i.ZERO)
+			min_dist = minf(min_dist, float(abs(tc.x - c.x) + abs(tc.y - c.y)))
+		if state.towers.is_empty():
+			min_dist = 10.0
+		if min_dist > best_score:
+			best_score = min_dist
+			best = c
+	return best
 
 
 # ---------------- 渲染辅助（占位图形，美术阶段替换） ----------------
@@ -332,6 +427,18 @@ func _spawn_hero_node(h: Dictionary) -> void:
 	n.position = battlefield._cell_to_world(h["cell"]) - n.size * 0.5
 	h["_node"] = n
 	_hero_nodes[String(h.get("id", ""))] = n
+
+
+func _spawn_tower_node(tw: Dictionary) -> void:
+	if not battlefield:
+		return
+	var n := ColorRect.new()
+	n.color = Color(0.9, 0.8, 0.35)
+	n.size = Vector2(38, 38)
+	battlefield.unit_layer.add_child(n)
+	n.position = battlefield._cell_to_world(tw["cell"]) - n.size * 0.5
+	tw["_node"] = n
+	_tower_nodes[String(tw.get("id", ""))] = n
 
 
 func _enemy_color(tag: String) -> Color:

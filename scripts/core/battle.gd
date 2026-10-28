@@ -55,7 +55,7 @@ static func create_enemy(enemy_def: Dictionary, wave: int, id_seed: int) -> Dict
 		"max_hp": hp,
 		"armor": armor,
 		"magic_resist": mr,
-		"attack": TDBalance.enemy_hp(wave) * 0.06 * float(enemy_def.get("atkMul", 1.0)),
+		"attack": TDBalance.enemy_attack(wave) * float(enemy_def.get("atkMul", 1.0)),
 		"atk_interval": float(enemy_def.get("atkInterval", 1.5)),
 		"attack_range": float(enemy_def.get("attackRange", 1)),
 		"move_speed": float(enemy_def.get("moveSpeed", 1.6)),
@@ -147,6 +147,15 @@ static func magic_damage_to_hero(caster_stats: Dictionary, hero: Dictionary, raw
 		hero["hp"] = 0.0
 		hero["alive"] = false
 	return dmg
+
+
+## 波次之间治疗：存活英雄在布防期回满血
+## 这是塔防的标准约定（Kingdom Rush 等），否则累计伤害会让英雄在数波后必然阵亡
+static func heal_between_waves(hero: Dictionary) -> void:
+	if not bool(hero.get("alive", false)):
+		return
+	var max_hp: float = float(hero.get("stats", {}).get("max_hp", 100.0))
+	hero["hp"] = max_hp
 
 
 ## 英雄升级检查，返回升级次数

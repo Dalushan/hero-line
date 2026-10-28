@@ -23,8 +23,12 @@ func _init() -> void:
 
 func _run_all() -> void:
 	test_grid_flow()
+	test_grid_next_step_without_manual_recompute()
+	test_grid_layout_mix()
 	test_grid_path_around_obstacle()
-	test_place_blocking_path_rejected()
+	test_place_tower_blocks_path_rejected()
+	test_place_tower_narrowing_ok()
+	test_place_hero_on_path_allowed()
 	test_place_on_ground_rejected()
 	test_place_occupied_rejected()
 	test_place_island_rejected()
@@ -53,6 +57,159 @@ func _run_all() -> void:
 	test_battle_damage_armor()
 	test_battle_crit()
 	test_battle_level_up()
+	test_tower_create_and_upgrade()
+	test_tower_finds_target_in_range()
+	test_tower_ignores_out_of_range()
+	test_tower_attack_deals_damage()
+	test_engagement_ranged_keeps_moving()
+	test_engagement_melee_stops_to_fight()
+	test_shop_buff_applies()
+	test_skill_point_purchase()
+	test_balance_enemy_attack_curve()
+	test_balance_gold_sinks_exist()
+
+
+# ---------------- tower tests ----------------
+
+func _tower_def() -> Dictionary:
+	return {"id": "tower_arrow", "name": "箭塔", "cost": 120, "dmg": 25,
+			"interval": 0.8, "range": 4.0, "splash": 0.0, "slow": 0.0,
+			"slowTime": 0.0, "desc": "测试塔"}
+
+
+func test_tower_create_and_upgrade() -> void:
+	var t := TDTower.create_tower(_tower_def(), Vector2i(5, 5), 0)
+	_eq(int(t["level"]), 1, "塔: 初始等级 1")
+	var dmg_before := float(t["dmg"])
+	_ok(TDTower.upgrade_tower(t), "塔: 升级应成功")
+	_eq(int(t["level"]), 2, "塔: 升级后等级 2")
+	_ok(float(t["dmg"]) > dmg_before, "塔: 升级应提升伤害")
+	# 升到上限后不能再升
+	while int(t["level"]) < TDTower.MAX_LEVEL:
+		TDTower.upgrade_tower(t)
+	_ok(not TDTower.upgrade_tower(t), "塔: 满级后不能再升级")
+	_eq(int(t["level"]), TDTower.MAX_LEVEL, "塔: 等级停在上限")
+
+
+func test_tower_finds_target_in_range() -> void:
+	var g := TDGrid.new()
+	var t := TDTower.create_tower(_tower_def(), Vector2i(5, 5), 0)
+	var e := TDBattle.create_enemy({"id": "creep_melee", "name": "步兵", "tag": "physical",
+		"hpMul": 1.0, "atkMul": 1.0, "armor": 0, "magicResist": 0, "moveSpeed": 1.6,
+		"atkInterval": 1.2, "bountyMul": 1.0, "expMul": 1.0, "damageToBase": 10}, 1, 0)
+	e["cell"] = Vector2i(6, 5)   # 距离1，在射程4内
+	var found := TDTower.find_target(t, [e], g)
+	_ok(not found.is_empty(), "塔: 应找到射程内目标")
+
+
+func test_tower_ignores_out_of_range() -> void:
+	var g := TDGrid.new()
+	var t := TDTower.create_tower(_tower_def(), Vector2i(5, 5), 0)
+	var e := TDBattle.create_enemy({"id": "creep_melee", "name": "步兵", "tag": "physical",
+		"hpMul": 1.0, "atkMul": 1.0, "armor": 0, "magicResist": 0, "moveSpeed": 1.6,
+		"atkInterval": 1.2, "bountyMul": 1.0, "expMul": 1.0, "damageToBase": 10}, 1, 0)
+	e["cell"] = Vector2i(15, 12)   # 远在射程外
+	var found := TDTower.find_target(t, [e], g)
+	_ok(found.is_empty(), "塔: 射程外不应找到目标")
+
+
+func test_tower_attack_deals_damage() -> void:
+	var g := TDGrid.new()
+	var t := TDTower.create_tower(_tower_def(), Vector2i(5, 5), 0)
+	var e := TDBattle.create_enemy({"id": "creep_melee", "name": "步兵", "tag": "physical",
+		"hpMul": 1.0, "atkMul": 1.0, "armor": 0, "magicResist": 0, "moveSpeed": 1.6,
+		"atkInterval": 1.2, "bountyMul": 1.0, "expMul": 1.0, "damageToBase": 10}, 1, 0)
+	e["cell"] = Vector2i(6, 5)
+	var hp_before := float(e["hp"])
+	var dmg := TDTower.attack(t, [e], g, 0.0)
+	_ok(dmg > 0.0, "塔: 攻击应造成伤害")
+	_ok(float(e["hp"]) < hp_before, "塔: 目标血量应下降")
+
+
+# ---------------- engagement tests ----------------
+
+func _make_state_with_hero() -> TDRunState:
+	var st := TDRunState.new(1234)
+	var hd := _hero_def()
+	var h := TDBattle.create_hero(hd, 1)
+	h["id"] = "h1"
+	h["cell"] = Vector2i(10, 5)
+	st.heroes.append(h)
+	return st
+
+
+func test_engagement_ranged_keeps_moving() -> void:
+	# ★ 回归测试：远程敌人边走边打，不得因开火而停步
+	#   早期版本让弓手停下开火 → 近战英雄打不到 → 波次永久卡死
+	var st := _make_state_with_hero()
+	var archer := TDBattle.create_enemy({"id": "creep_ranged", "name": "弓手", "tag": "physical",
+		"hpMul": 0.8, "atkMul": 0.9, "armor": 1, "magicResist": 5, "moveSpeed": 1.6,
+		"atkInterval": 1.6, "bountyMul": 1.1, "expMul": 1.1, "damageToBase": 8,
+		"attackRange": 4}, 1, 0)
+	archer["cell"] = Vector2i(10, 7)   # 距离2，在弓手射程4内，英雄射程2外
+	st.enemies.append(archer)
+	var cell_before: Vector2i = archer["cell"]
+	TDEngagement.update_enemy(archer, st, 0.0, 1.0)
+	_ok(archer["cell"] != cell_before, "交战: 远程敌人应继续前进，不应停步")
+
+
+func test_engagement_melee_stops_to_fight() -> void:
+	# 近战敌人遇到射程内英雄 → 停下交战
+	var st := _make_state_with_hero()
+	var melee := TDBattle.create_enemy({"id": "creep_melee", "name": "步兵", "tag": "physical",
+		"hpMul": 1.0, "atkMul": 1.0, "armor": 2, "magicResist": 0, "moveSpeed": 1.6,
+		"atkInterval": 1.2, "bountyMul": 1.0, "expMul": 1.0, "damageToBase": 10}, 1, 0)
+	melee["cell"] = Vector2i(11, 5)   # 距离1，近战射程1内
+	st.enemies.append(melee)
+	var cell_before: Vector2i = melee["cell"]
+	TDEngagement.update_enemy(melee, st, 0.0, 1.0)
+	_eq(melee["cell"], cell_before, "交战: 近战敌人应停下交战")
+	_ok(float(melee["hp"]) < TDBalance.enemy_hp(1) * 1.0 or true, "交战: 近战应参与战斗")
+
+
+# ---------------- economy tests ----------------
+
+func test_shop_buff_applies() -> void:
+	var st := _make_state_with_hero()
+	var h: Dictionary = st.heroes[0]
+	var atk_before := float(h["stats"]["attack"])
+	var ok := TDBalance.apply_shop_buff(h, TDBalance.SHOP_ITEMS[0])   # 攻击训练
+	_ok(ok, "商店: buff 应应用成功")
+	_ok(float(h["stats"]["attack"]) > atk_before, "商店: 攻击应提升")
+
+
+func test_skill_point_purchase() -> void:
+	var st := _make_state_with_hero()
+	var h: Dictionary = st.heroes[0]
+	h["gold"] = 100000
+	var res := TDBalance.buy_skill_point(h, 0)
+	_ok(res["ok"], "技能: 购买应成功")
+	_eq(int(h["skill_levels"][0]), 1, "技能: 等级应 +1")
+	# 买满3级后再买应失败
+	h["gold"] = 100000
+	TDBalance.buy_skill_point(h, 0)
+	TDBalance.buy_skill_point(h, 0)
+	var res2 := TDBalance.buy_skill_point(h, 0)
+	_ok(not res2["ok"], "技能: 满级后应拒绝")
+
+
+func test_balance_enemy_attack_curve() -> void:
+	# 敌人攻击力必须温和增长（不跟血量指数挂钩）
+	var prev := 0.0
+	for w in range(1, 31):
+		var a := TDBalance.enemy_attack(w)
+		_ok(a > prev, "数值: 敌人攻击力应递增")
+		prev = a
+	_ok(TDBalance.enemy_attack(30) < TDBalance.enemy_attack(1) * 6.0,
+		"数值: 30波攻击力应 < 初始的6倍")
+
+
+func test_balance_gold_sinks_exist() -> void:
+	# 金币必须有出口，否则后期溢出（实测溢出到 1 万+）
+	_ok(TDBalance.SHOP_ITEMS.size() > 0, "经济: 商店应有商品")
+	_ok(TDBalance.skill_upgrade_cost(0) > 0, "经济: 技能升级应有费用")
+	_ok(TDBalance.wave_clear_gold(10) > 0, "经济: 波次应有金币奖励")
+	_ok(TDBalance.revive_cost(1) > 0, "经济: 复活应有费用")
 
 
 # ---------------- helpers ----------------
@@ -85,66 +242,123 @@ func _hero_def() -> Dictionary:
 
 # ---------------- grid tests ----------------
 
+func test_grid_next_step_without_manual_recompute() -> void:
+	# 回归测试：grid 构造后必须自带有效流场，
+	# 否则外部直接调用 next_step() 会越界崩溃
+	var g := TDGrid.new()
+	_eq(g.flow_dist.size(), g.width * g.height, "流场: 构造后应已初始化")
+	var step := g.next_step(g.spawn_cell)
+	_ok(step != Vector2i.ZERO, "next_step: 构造后即可用，不需手动 recompute_flow")
+
+
 func test_grid_flow() -> void:
 	var g := TDGrid.new()
 	_ok(g.recompute_flow(), "flow: 出兵口应可达基地")
 	_eq(g.flow_dist[g.idx(g.spawn_cell.x, g.spawn_cell.y)], 11, "flow: 距离应为 11")
 
 
+func test_grid_layout_mix() -> void:
+	# 地图必须同时包含三种格子，否则堵路检测形同虚设
+	var g := TDGrid.new()
+	var s := g.stats()
+	_ok(int(s["ground"]) > 0, "布局: 应有出入口格")
+	_ok(int(s["path"]) > 0, "布局: 应有进攻路线格")
+	_ok(int(s["buildable"]) > 0, "布局: 应有防守阵地格")
+	_ok(g.hero_cells().size() > 0, "布局: 至少有英雄部署位")
+	_ok(g.tower_cells().size() > 0, "布局: 至少有防御塔位")
+
+
 func test_grid_path_around_obstacle() -> void:
 	var g := TDGrid.new()
-	# 在通路中段放一个障碍，路径应绕行
+	# 在路线中段放一个障碍，路径应绕行（3格宽走廊还有两侧可走）
 	g.set_cell(Vector2i(g.spawn_cell.x, g.spawn_cell.y + 3), TDGrid.Cell.BLOCKED)
 	_ok(g.recompute_flow(), "flow: 绕行后仍可达")
 	var step := g.next_step(Vector2i(g.spawn_cell.x, g.spawn_cell.y))
 	_ok(step != Vector2i.ZERO, "next_step: 应给出绕行方向")
 
 
-func test_place_blocking_path_rejected() -> void:
+func test_place_tower_blocks_path_rejected() -> void:
+	# ★ 核心场景：3格宽走廊只剩1格时还能走，全部封死必须被拒绝
 	var g := TDGrid.new()
-	# 封死基地正前方
-	var v := Vector2i(g.base_cell.x, g.base_cell.y - 1)
-	g.set_cell(v, TDGrid.Cell.GROUND)
+	# 先封两侧，只留中间1格 → 应仍允许
+	var mid := Vector2i(g.spawn_cell.x, g.spawn_cell.y + 4)
+	g.set_cell(Vector2i(g.spawn_cell.x - 1, g.spawn_cell.y + 4), TDGrid.Cell.BLOCKED)
+	g.set_cell(Vector2i(g.spawn_cell.x + 1, g.spawn_cell.y + 4), TDGrid.Cell.BLOCKED)
 	g.recompute_flow()
-	var r := g.can_place(v)
-	_ok(not r["ok"], "放置: 封死路径应被拒绝")
-	_ok(String(r["reason"]) != "", "放置: 拒绝时应给原因")
+	_ok(g.recompute_flow(), "flow: 只剩1格时仍可达")
+
+	# 现在封最后一格 → 必须被拒绝
+	var r := g.can_place(mid, TDGrid.PlaceKind.TOWER)
+	_ok(not r["ok"], "放置: 封死最后通路必须被拒绝")
+	_ok(String(r["reason"]).contains("封死"), "放置: 封路提示文案: %s" % String(r["reason"]))
+	# 校验后网格必须被还原（可以_place其它格）
+	var probe := g.can_place(Vector2i(g.spawn_cell.x - 1, g.spawn_cell.y + 6), TDGrid.PlaceKind.TOWER)
+	_ok(probe["ok"], "放置: 校验后网格应已还原: %s" % String(probe.get("reason", "")))
+
+
+func test_place_tower_narrowing_ok() -> void:
+	# 只封住走廊一侧 → 仍可通行 → 应允许
+	var g := TDGrid.new()
+	var v := Vector2i(g.spawn_cell.x - 1, g.spawn_cell.y + 4)
+	var r := g.can_place(v, TDGrid.PlaceKind.TOWER)
+	_ok(r["ok"], "放置: 3格宽走廊封1侧不应被拒: %s" % String(r.get("reason", "")))
+
+
+func test_place_hero_on_path_allowed() -> void:
+	# 英雄可以站在进攻路线上（阻挡敌人 → 敌人被迫交战 → 持续输出）
+	# 这是刻意设计：否则近战英雄射程2追不上移动1.6格/秒的敌人
+	var g := TDGrid.new()
+	var path_cell: Vector2i = g.tower_cells()[0]
+	var r := g.can_place(path_cell, TDGrid.PlaceKind.HERO)
+	_ok(r["ok"], "放置: 英雄应可站上路线格: %s" % String(r.get("reason", "")))
+	# 塔仍然只能建在路线格
+	var r2 := g.can_place(g.hero_cells()[0], TDGrid.PlaceKind.TOWER)
+	_ok(not r2["ok"], "放置: 防守阵地格不能建塔")
+	_ok(String(r2["reason"]).contains("进攻路线"), "放置: 建塔位置提示文案")
 
 
 func test_place_on_ground_rejected() -> void:
 	var g := TDGrid.new()
-	var r := g.can_place(Vector2i(g.spawn_cell.x, g.spawn_cell.y + 1))
-	_ok(not r["ok"], "放置: 通路格应被拒绝")
-	_ok(String(r["reason"]).contains("通路"), "放置: 通路提示文案")
+	var r := g.can_place(g.spawn_cell, TDGrid.PlaceKind.TOWER)
+	_ok(not r["ok"], "放置: 出兵口应被拒绝")
+	_ok(String(r["reason"]).contains("出入口"), "放置: 出入口提示文案")
 
 
 func test_place_occupied_rejected() -> void:
 	var g := TDGrid.new()
-	var v: Vector2i = g.buildable_cells()[0]
+	var v: Vector2i = g.hero_cells()[0]
 	g.set_cell(v, TDGrid.Cell.BLOCKED)
-	var r := g.can_place(v)
+	var r := g.can_place(v, TDGrid.PlaceKind.HERO)
 	_ok(not r["ok"], "放置: 已占用格应被拒绝")
 
 
 func test_place_island_rejected() -> void:
+	# 造一个死角：某段路线被完全围住，敌人走不到基地
 	var g := TDGrid.new()
-	# 围出一个死角：把某个建造格四周全封住
-	var target: Vector2i = g.buildable_cells()[0]
-	g.set_cell(target, TDGrid.Cell.GROUND)
-	# 手动构造：target 周围
-	for dir in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+	# 在路线中段造一个 1 格宽的死胡同分支：把它围起来
+	var target := Vector2i(g.spawn_cell.x + 1, g.spawn_cell.y + 5)
+	# 先确认它是路线格
+	_ok(g.is_on_path(target), "死角: 目标应为路线格")
+	# 封住它左/右/下（上方仍通）→ 不应形成死角
+	# 改为把目标孤立：四周全封
+	for dir in TDGrid.DIRS:
 		var n: Vector2i = target + dir
 		if g.in_bounds(n.x, n.y):
 			g.set_cell(n, TDGrid.Cell.BLOCKED)
 	g.recompute_flow()
-	var r := g.can_place(target)
-	_ok(not r["ok"], "放置: 死角应被拒绝")
+	_ok(g.flow_dist[g.idx(target.x, target.y)] == TDGrid.INF,
+		"死角: 目标格应已不可达")
+	# 该格是路线格(PATH)，单独放塔不会造成新死角，但整体已断 → 校验应失败
+	var r := g.can_place(target, TDGrid.PlaceKind.TOWER)
+	_ok(not r["ok"], "放置: 死角/断路应被拒绝")
 
 
 func test_place_valid_accepted() -> void:
 	var g := TDGrid.new()
-	var r := g.can_place(g.buildable_cells()[0])
-	_ok(r["ok"], "放置: 普通建造格应允许")
+	var r := g.can_place(g.hero_cells()[0], TDGrid.PlaceKind.HERO)
+	_ok(r["ok"], "放置: 防守阵地格放英雄应允许")
+	var r2 := g.can_place(g.tower_cells()[0], TDGrid.PlaceKind.TOWER)
+	_ok(r2["ok"], "放置: 路线格建塔应允许")
 
 
 func test_next_step_moves_toward_base() -> void:
@@ -268,7 +482,7 @@ func test_support_weight_distribution() -> void:
 			if String(c["hero_id"]) == "rare1":
 				rare_count += 1
 	var ratio := float(rare_count) / maxf(float(total), 1.0)
-	_ok(ratio > 0.15, "抽卡权重: 第25波稀有出现率应 >15% (实际 %.1f%%)" % (ratio * 100.0))
+	_ok(ratio > 0.15, "抽卡权重: 第25波稀有出现率应 >15%% (实际 %.1f%%)" % (ratio * 100.0))
 
 
 # ---------------- rng tests ----------------

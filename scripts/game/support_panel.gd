@@ -60,8 +60,8 @@ func _make_card(index: int) -> Control:
 	name_label.add_theme_font_size_override("font_size", 22)
 	box.add_child(name_label)
 
-	var rarity := String(card.get("hero_rarity", "common"))
-	var rarity_text := {"common": "普通", "rare": "稀有", "legendary": "传说"}.get(rarity, rarity)
+	var rarity: String = String(card.get("hero_rarity", "common"))
+	var rarity_text: String = String({"common": "普通", "rare": "稀有", "legendary": "传说"}.get(rarity, rarity))
 	var rarity_label := Label.new()
 	rarity_label.text = "稀有度: " + rarity_text
 	rarity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -72,7 +72,9 @@ func _make_card(index: int) -> Control:
 	if item.is_empty():
 		item_label.text = "无装备"
 	else:
-		item_label.text = "装备: %s\n%s" % [String(item.get("name", "")), String(item.get("desc", ""))]
+		var item_name: String = String(item.get("name", ""))
+		var item_desc: String = String(item.get("desc", ""))
+		item_label.text = "装备: %s\n%s" % [item_name, item_desc]
 	item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	item_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	item_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
