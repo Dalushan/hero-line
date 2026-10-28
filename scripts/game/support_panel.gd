@@ -17,11 +17,20 @@ func _render() -> void:
 		c.queue_free()
 	_buttons.clear()
 
+	# 遮罩
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.6)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(dim)
+
+	# ★ 用 CenterContainer 居中，避免 PRESET_CENTER + position 的锚点换算错误
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+
 	var panel := PanelContainer.new()
-	panel.set_anchors_preset(Control.PRESET_CENTER)
 	panel.custom_minimum_size = Vector2(760, 320)
-	panel.position = Vector2(-380, -160)
-	add_child(panel)
+	center.add_child(panel)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 14)

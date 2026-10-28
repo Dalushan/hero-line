@@ -11,6 +11,7 @@ var state: TDRunState
 var battlefield: Node2D
 var support_panel: Control
 var build_bar: Control
+var shop_panel: Control
 
 var _heroes_data: Array = []
 var _items_data: Array = []
@@ -31,8 +32,17 @@ var _tower_nodes: Dictionary = {}
 func _ready() -> void:
 	_load_data()
 	battlefield = get_node_or_null("Battlefield")
-	support_panel = get_node_or_null("SupportPanel")
+	support_panel = get_node_or_null("OverlayLayer/SupportPanel")
 	build_bar = get_node_or_null("BuildBar")
+	shop_panel = get_node_or_null("OverlayLayer/ShopPanel")
+	var shop_button := get_node_or_null("OverlayLayer/TopBar/ShopButton")
+	if shop_button and shop_button is Button:
+		(shop_button as Button).pressed.connect(_toggle_shop)
+	if shop_panel:
+		# ★ 必须用 has_signal 检查：shop_panel 声明为 Control 类型，
+		#   直接写 shop_panel.closed 会在类型检查期报"Invalid access to property"
+		if shop_panel.has_signal("closed"):
+			shop_panel.connect("closed", _toggle_shop)
 	if battlefield:
 		battlefield.cell_clicked.connect(_on_cell_clicked)
 		battlefield.cell_hovered.connect(_on_cell_hovered)
@@ -41,6 +51,19 @@ func _ready() -> void:
 		build_bar.upgrade_selected.connect(_on_upgrade_selected)
 		build_bar.cancel_selected.connect(_on_cancel_selected)
 	_start_new_run()
+
+
+func _toggle_shop() -> void:
+	if shop_panel == null:
+		return
+	if shop_panel.visible:
+		shop_panel.visible = false
+		return
+	# 打开前刷新商品（保证价格按当前波次算）
+	_refresh_shop()
+	if shop_panel.has_method("setup"):
+		shop_panel.setup(state, state.shop_offers)
+	shop_panel.visible = true
 
 
 func _on_tower_selected(tower_def: Dictionary) -> void:

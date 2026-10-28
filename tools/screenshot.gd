@@ -5,6 +5,10 @@ extends SceneTree
 
 const OUT_PATH := "user://screenshot.png"
 const RUN_SECONDS := 12.0
+const OPEN_SHOP := true     ## 截图时是否打开商店面板
+
+var _main_node: Node = null
+var _shop_opened := false
 
 
 func _init() -> void:
@@ -13,10 +17,25 @@ func _init() -> void:
 	var scene: PackedScene = load("res://scenes/main.tscn")
 	var node := scene.instantiate()
 	root.add_child(node)
-	print("[screenshot] 场景已加载，运行 %.0f 秒后截图" % RUN_SECONDS)
+	if OPEN_SHOP:
+		# 打开商店（验证 UI 能渲染）
+		# ★ 必须在节点入树之后再调用：_init() 阶段 main._ready() 还没跑，
+		#   get_node_or_null 拿不到子节点，_toggle_shop 会静默 return
+		_main_node = node
+		print("[screenshot] 节点已入树, 稍后打开商店")
 
 
 func _process(delta: float) -> bool:
+	if _main_node != null and not _shop_opened:
+		_shop_opened = true
+		if _main_node.has_method("_toggle_shop"):
+			_main_node.call("_toggle_shop")
+			print("[screenshot] 已打开商店面板")
+		var sp = _main_node.get_node_or_null("OverlayLayer/ShopPanel")
+		if sp:
+			print("[screenshot] shop_panel visible=%s children=%d" % [sp.visible, sp.get_child_count()])
+		return false
+
 	var elapsed := float(Time.get_ticks_msec()) / 1000.0
 	if elapsed < RUN_SECONDS:
 		return false

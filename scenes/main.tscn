@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://ctdhd1main01"]
+[gd_scene load_steps=8 format=3 uid="uid://ctdhd1main01"]
 
 [ext_resource type="Script" path="res://scripts/game/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scripts/game/battlefield.gd" id="2_bf"]
 [ext_resource type="Script" path="res://scripts/game/support_panel.gd" id="3_sp"]
 [ext_resource type="Script" path="res://scripts/game/build_bar.gd" id="4_bb"]
+[ext_resource type="Script" path="res://scripts/game/shop_panel.gd" id="5_shop"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -47,13 +48,6 @@ autowrap_mode = 3
 autowrap_mode = 3
 text = "提示: 点击塔按钮建塔, 点击英雄按钮部署英雄"
 
-[node name="SupportPanel" type="Control" parent="."]
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-script = ExtResource("3_sp")
-
 [node name="BuildBar" type="Control" parent="."]
 anchors_preset = 12
 anchor_top = 1.0
@@ -61,3 +55,33 @@ anchor_bottom = 1.0
 offset_top = -78.0
 offset_right = 1280.0
 script = ExtResource("4_bb")
+
+[node name="OverlayLayer" type="CanvasLayer" parent="."]
+
+[node name="ShopPanel" type="Control" parent="OverlayLayer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("5_shop")
+
+[node name="SupportPanel" type="Control" parent="OverlayLayer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("3_sp")
+
+[node name="TopBar" type="Control" parent="OverlayLayer"]
+anchors_preset = 10
+offset_left = 900.0
+offset_right = 1280.0
+offset_bottom = 40.0
+mouse_filter = 2
+
+[node name="ShopButton" type="Button" parent="OverlayLayer/TopBar"]
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 108.0
+offset_bottom = 36.0
+text = "商店"
