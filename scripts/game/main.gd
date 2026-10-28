@@ -10,6 +10,7 @@ const TOWER_DEF_PATH := "res://data/tower_def.json"
 var state: TDRunState
 var battlefield: Node2D
 var support_panel: Control
+var build_bar: Control
 
 var _heroes_data: Array = []
 var _items_data: Array = []
@@ -31,7 +32,98 @@ func _ready() -> void:
 	_load_data()
 	battlefield = get_node_or_null("Battlefield")
 	support_panel = get_node_or_null("SupportPanel")
+	build_bar = get_node_or_null("BuildBar")
+	if battlefield:
+		battlefield.cell_clicked.connect(_on_cell_clicked)
+		battlefield.cell_hovered.connect(_on_cell_hovered)
+	if build_bar:
+		build_bar.tower_selected.connect(_on_tower_selected)
+		build_bar.upgrade_selected.connect(_on_upgrade_selected)
+		build_bar.cancel_selected.connect(_on_cancel_selected)
 	_start_new_run()
+
+
+func _on_tower_selected(tower_def: Dictionary) -> void:
+	# 选了塔 → 进入建塔模式，等玩家点格子
+	if state.gold < int(tower_def.get("cost", 0)):
+		return
+	battlefield.set_build_tower(tower_def)
+
+
+func _on_upgrade_selected() -> void:
+	battlefield.set_upgrade_mode()
+
+
+func _on_cancel_selected() -> void:
+	battlefield.clear_build_mode()
+
+
+func _on_cell_hovered(_cell: Vector2i, _kind: int, _ok: bool, _reason: String) -> void:
+	pass
+
+
+func _on_cell_clicked(cell: Vector2i, kind: int) -> void:
+	match kind:
+		battlefield.BuildMode.TOWER:
+			_try_build_tower(cell)
+		battlefield.BuildMode.UPGRADE:
+			_try_upgrade_tower(cell)
+		battlefield.BuildMode.HERO:
+			_try_place_hero(cell)
+		_:
+			pass
+
+
+func _try_build_tower(cell: Vector2i) -> void:
+	var tdef: Dictionary = battlefield.pending_tower_def
+	if tdef.is_empty():
+		return
+	var cost := int(tdef.get("cost", 0))
+	if state.gold < cost:
+		return
+	# 合法性判定在 core
+	var chk := state.grid.can_place(cell, TDGrid.PlaceKind.TOWER)
+	if not chk["ok"]:
+		return
+	var tower := TDTower.create_tower(tdef, cell, state.towers.size())
+	state.towers.append(tower)
+	state.grid.set_cell(cell, TDGrid.Cell.BLOCKED)
+	state.grid.recompute_flow()   # ★ 占位后必须重算流场
+	state.gold -= cost
+	_spawn_tower_node(tower)
+
+
+func _try_upgrade_tower(cell: Vector2i) -> void:
+	for t in state.towers:
+		var tc: Vector2i = t.get("cell", Vector2i.ZERO)
+		if tc != cell:
+			continue
+		if int(t.get("level", 1)) >= TDTower.MAX_LEVEL:
+			return
+		var cost := TDTower.upgrade_cost(t)
+		if state.gold < cost:
+			return
+		state.gold -= cost
+		TDTower.upgrade_tower(t)
+		return
+
+
+func _try_place_hero(cell: Vector2i) -> void:
+	var hdef: Dictionary = battlefield.pending_hero_def
+	if hdef.is_empty():
+		return
+	var chk := state.grid.can_place(cell, TDGrid.PlaceKind.HERO)
+	if not chk["ok"]:
+		return
+	var h := TDBattle.create_hero(hdef, 1)
+	h["_def"] = hdef
+	h["id"] = "h_%d" % state.heroes.size()
+	h["cell"] = cell
+	h["_placed"] = true
+	state.grid.set_cell(cell, TDGrid.Cell.BLOCKED)
+	state.grid.recompute_flow()
+	state.heroes.append(h)
+	_spawn_hero_node(h)
 
 
 func _load_data() -> void:
@@ -89,10 +181,11 @@ func _begin_prepare() -> void:
 		h["_next_atk"] = 0.0
 	for tw in state.towers:
 		tw["next_atk"] = 0.0
-	# 自动布防 + 建塔（后续接入玩家点击建造）
+	# 自动布防（初始英雄）+ 玩家手动建塔
 	_auto_place_heroes()
-	_auto_build_towers()
 	_refresh_shop()
+	if build_bar and build_bar.has_method("setup"):
+		build_bar.setup(state, _towers_data)
 
 
 func _auto_place_heroes() -> void:
@@ -405,7 +498,7 @@ func _move_enemy_node(e: Dictionary) -> void:
 	if not e.has("_node"):
 		return
 	var n = e["_node"]
-	n.position = battlefield._cell_to_world(e["cell"]) - n.size * 0.5
+	n.position = battlefield.cell_to_world(e["cell"]) - n.size * 0.5
 
 
 func _remove_enemy_node(e: Dictionary) -> void:
@@ -424,7 +517,7 @@ func _spawn_hero_node(h: Dictionary) -> void:
 	n.color = Color(0.3, 0.7, 1.0)
 	n.size = Vector2(44, 44)
 	battlefield.unit_layer.add_child(n)
-	n.position = battlefield._cell_to_world(h["cell"]) - n.size * 0.5
+	n.position = battlefield.cell_to_world(h["cell"]) - n.size * 0.5
 	h["_node"] = n
 	_hero_nodes[String(h.get("id", ""))] = n
 
@@ -436,7 +529,7 @@ func _spawn_tower_node(tw: Dictionary) -> void:
 	n.color = Color(0.9, 0.8, 0.35)
 	n.size = Vector2(38, 38)
 	battlefield.unit_layer.add_child(n)
-	n.position = battlefield._cell_to_world(tw["cell"]) - n.size * 0.5
+	n.position = battlefield.cell_to_world(tw["cell"]) - n.size * 0.5
 	tw["_node"] = n
 	_tower_nodes[String(tw.get("id", ""))] = n
 
