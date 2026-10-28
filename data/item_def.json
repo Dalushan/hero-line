@@ -1,0 +1,30 @@
+{
+  "items": [
+    { "id": "item_branch", "name": "铁树枝", "cost": 50, "slot": "stat", "stats": { "allStats": 10 }, "tags": ["physical", "magic", "tank"], "desc": "全属性 +10" },
+    { "id": "item_magic_stick", "name": "魔棒", "cost": 50, "slot": "stat", "stats": { "allStats": 10, "hpRegen": 1.5 }, "tags": ["physical", "magic"], "desc": "全属性 +10，每秒回复 1.5 HP" },
+    { "id": "item_power_treads", "name": "动力鞋", "cost": 450, "slot": "move", "stats": { "moveSpeed": 45, "atkSpeed": 25 }, "tags": ["physical", "assassin"], "desc": "移动速度 +45，攻速 +25" },
+    { "id": "item_iron_branch", "name": "铁树枝干", "cost": 200, "slot": "stat", "stats": { "allStats": 12, "atk": 6 }, "tags": ["physical"], "desc": "全属性 +12，攻击力 +6" },
+    { "id": "item_blink", "name": "相位匕首", "cost": 2250, "slot": "active", "stats": { "allStats": 25 }, "active": { "id": "blink", "name": "相位跃迁", "cooldown": 15, "desc": "闪现 5 格" }, "tags": ["assassin", "physical"], "desc": "全属性 +25，主动：闪现 5 格" },
+    { "id": "item_black_king_bar", "name": "黑皇杖", "cost": 4200, "slot": "active", "stats": { "allStats": 40, "hp": 200 }, "active": { "id": "bkb", "name": "神之佑护", "cooldown": 70, "desc": "免疫技能并驱散减益 3s" }, "tags": ["tank"], "desc": "全属性 +40，HP +200，主动：免疫减益 3s" },
+    { "id": "item_yama", "name": "羊刀", "cost": 1400, "slot": "passive", "stats": { "atkSpeed": 40, "evasion": 20 }, "passive": { "id": "yama", "desc": "闪避 +20%" }, "tags": ["physical"], "desc": "攻速 +40，闪避 20%" },
+    { "id": "item_heart", "name": "心之钛", "cost": 1800, "slot": "passive", "stats": { "hp": 400, "hpRegen": 6 }, "tags": ["tank", "support"], "desc": "HP +400，每秒回复 6 HP" },
+    { "id": "item_satanic", "name": "散夜", "cost": 4800, "slot": "passive", "stats": { "atkSpeed": 30, "allStats": 35 }, "passive": { "id": "satanic", "desc": "物理吸血 25%" }, "tags": ["physical", "carry"], "desc": "全属性 +35，攻速 +30，物理吸血 25%" },
+    { "id": "item_dagon", "name": "达贡之杖", "cost": 4700, "slot": "active", "stats": { "allStats": 50, "spellPower": 200 }, "active": { "id": "dagon", "name": "达贡之怒", "cooldown": 60, "desc": "对全场敌人造成 500 伤害" }, "tags": ["magic"], "desc": "全属性 +50，法强 +200，主动：全场 500 伤害" },
+    { "id": "item_bloodthorn", "name": "血棘", "cost": 4600, "slot": "passive", "stats": { "allStats": 45, "hp": 300 }, "passive": { "id": "bloodthorn", "desc": "攻击有几率禁锢目标 1.5s" }, "tags": ["carry", "physical"], "desc": "全属性 +45，HP +300，攻击有几率禁锢" },
+    { "id": "item_skywrath", "name": "苍穹之击", "cost": 3300, "slot": "passive", "stats": { "allStats": 30, "atkSpeed": 25 }, "passive": { "id": "skywrath", "desc": "多段攻击，每段 20/40/60 伤害" }, "tags": ["physical"], "desc": "全属性 +30，攻速 +25，多段攻击" },
+    { "id": "item_aghanim", "name": "天辉", "cost": 4100, "slot": "passive", "stats": { "allStats": 35, "spellPower": 120 }, "passive": { "id": "aghanim", "desc": "技能等级 +1" }, "tags": ["magic", "support"], "desc": "全属性 +35，法强 +120，技能等级 +1" },
+    { "id": "item_locket", "name": "玲珑", "cost": 2000, "slot": "passive", "stats": { "hp": 250, "allStats": 20 }, "passive": { "id": "locket", "desc": "受到致命伤害时回复 30% HP，冷却 60s" }, "tags": ["tank", "support"], "desc": "HP +250，濒死保护" },
+    { "id": "item_urn", "name": "树之祭祀", "cost": 1200, "slot": "passive", "stats": { "allStats": 15, "hpRegen": 2 }, "passive": { "id": "urn", "desc": "周围友军每秒额外回复 2 HP" }, "tags": ["support", "tank"], "desc": "全属性 +15，团队回复光环" },
+    { "id": "item_bfly", "name": "蝶翼", "cost": 3200, "slot": "passive", "stats": { "atkSpeed": 30, "evasion": 25, "dmgReduction": 20 }, "passive": { "id": "bfly", "desc": "闪避 25%，受到伤害 -20%" }, "tags": ["physical", "carry"], "desc": "攻速 +30，闪避 25%，减伤 20%" }
+  ],
+  "affixes": [
+    { "id": "affix_mage_hunter", "name": "猎法师", "desc": "对法师系敌人伤害 +20%", "weight": 10.0, "condition": { "enemyTag": "magic" } },
+    { "id": "affix_boss_slayer", "name": "屠戮者", "desc": "对精英与 Boss 伤害 +25%", "weight": 8.0, "condition": { "enemyTag": "elite" } },
+    { "id": "affix_sustain", "name": "汲取", "desc": "击杀恢复 5% 最大 HP", "weight": 9.0 },
+    { "id": "affix_haste", "name": "迅捷", "desc": "攻速 +12%", "weight": 12.0 },
+    { "id": "affix_cheap", "name": "节俭", "desc": "商店价格 -20%", "weight": 8.0 },
+    { "id": "affix_wave_reroll", "name": "洞察", "desc": "每 10 波免费刷新一次卡牌", "weight": 6.0 },
+    { "id": "affix_armor_break", "name": "破甲", "desc": "攻击无视目标 20% 护甲", "weight": 11.0 },
+    { "id": "affix_regen_kill", "name": "猎杀", "desc": "每击杀 10 个敌人回复 15% HP", "weight": 7.0 }
+  ]
+}

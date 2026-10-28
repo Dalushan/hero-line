@@ -1,0 +1,208 @@
+{
+  "heroes": [
+    {
+      "id": "hero_zhan_guang",
+      "name": "斩光者",
+      "dotaRef": "juggernaut",
+      "type": "melee_physical",
+      "rarity": "rare",
+      "rarityWeight": 10.0,
+      "role": "carry",
+      "base": { "hp": 520, "str": 22, "agi": 24, "int": 12, "atk": 42, "atkInterval": 0.9, "range": 2, "armor": 6, "magicResist": 20, "moveSpeed": 4.2 },
+      "growth": { "str": 1.8, "agi": 2.4, "int": 0.9 },
+      "skills": [
+        { "id": "crit", "name": "致命一击", "maxLevel": 3, "cooldown": 6, "desc": "攻击有 25%/30%/35% 概率造成 2.0/2.4/2.8 倍伤害" },
+        { "id": "blade_dance", "name": "剑舞风暴", "maxLevel": 3, "cooldown": 12, "desc": "对周围敌人造成 60%/85%/110 伤害并加速自身 30%，持续 3s" },
+        { "id": "omni", "name": "万刃齐发", "maxLevel": 3, "cooldown": 18, "desc": "短时间高频攻击，每次攻击额外 +8/+12/+16 伤害" },
+        { "id": "blade_oath", "name": "斩光之刃", "maxLevel": 3, "cooldown": 0, "desc": "每 4 次攻击触发一次额外攻击，造成 40%/60%/80 伤害" }
+      ]
+    },
+    {
+      "id": "hero_ke_qi",
+      "name": "裂石者",
+      "dotaRef": "axe",
+      "type": "melee_physical",
+      "rarity": "common",
+      "rarityWeight": 60.0,
+      "role": "tank",
+      "base": { "hp": 900, "str": 26, "agi": 14, "int": 12, "atk": 36, "atkInterval": 1.3, "range": 2, "armor": 10, "magicResist": 25, "moveSpeed": 3.8 },
+      "growth": { "str": 2.6, "agi": 1.2, "int": 0.8 },
+      "skills": [
+        { "id": "berserkers_call", "name": "怒吼", "maxLevel": 3, "cooldown": 12, "desc": "嘲讽周围敌人并造成 40%/60%/80 伤害" },
+        { "id": "battle_hunger", "name": "嗜血饥渴", "maxLevel": 3, "cooldown": 10, "desc": "命中敌方小兵时使其攻击下降 10%/15%/20%，可叠加" },
+        { "id": "counter_helix", "name": "反击螺旋", "maxLevel": 3, "cooldown": 14, "desc": "受到攻击时反弹 60%/90%/120 伤害" },
+        { "id": "outland", "name": "蛮荒之力", "maxLevel": 3, "cooldown": 0, "desc": "每 5 波提升自身 2%/3%/4% 攻击力，可叠加" }
+      ]
+    },
+    {
+      "id": "hero_ying_mo",
+      "name": "影炎",
+      "dotaRef": "nevermore",
+      "type": "melee_physical",
+      "rarity": "rare",
+      "rarityWeight": 10.0,
+      "role": "carry",
+      "base": { "hp": 600, "str": 22, "agi": 16, "int": 18, "atk": 48, "atkInterval": 1.0, "range": 2, "armor": 7, "magicResist": 22, "moveSpeed": 3.9 },
+      "growth": { "str": 2.0, "agi": 1.4, "int": 1.6 },
+      "skills": [
+        { "id": "shadowraze", "name": "暗影爆裂", "maxLevel": 3, "cooldown": 5, "desc": "对目标区域造成 70%/95%/120 伤害" },
+        { "id": "requiem", "name": "安魂曲", "maxLevel": 3, "cooldown": 45, "desc": "大范围高伤害，伤害随击杀数提升" },
+        { "id": "nether_blade", "name": "幽冥之刃", "maxLevel": 3, "cooldown": 0, "desc": "每 3 次攻击造成 120%/160%/200 伤害并沉默 1.5s" },
+        { "id": "presence", "name": "恐怖景象", "maxLevel": 3, "cooldown": 0, "desc": "周围敌人受到额外 8%/12%/16% 伤害" }
+      ]
+    },
+    {
+      "id": "hero_wu_liang",
+      "name": "霜骨",
+      "dotaRef": "lich",
+      "type": "ranged_magic",
+      "rarity": "rare",
+      "rarityWeight": 10.0,
+      "role": "control",
+      "base": { "hp": 480, "str": 15, "agi": 12, "int": 28, "atk": 36, "atkInterval": 1.4, "range": 5, "armor": 5, "magicResist": 30, "moveSpeed": 3.6 },
+      "growth": { "str": 1.2, "agi": 1.0, "int": 3.0 },
+      "skills": [
+        { "id": "frost_nova", "name": "冰霜新星", "maxLevel": 3, "cooldown": 10, "desc": "冻结周围敌人 1.5/2/2.5s" },
+        { "id": "chain_frost", "name": "冰霜之环", "maxLevel": 3, "cooldown": 8, "desc": "冰冻目标并对其周围造成 40%/60%/80 伤害" },
+        { "id": "frost_shield", "name": "冰霜护盾", "maxLevel": 3, "cooldown": 14, "desc": "为自身或友方提供吸收 80/140/200 伤害的护盾" },
+        { "id": "cold_blood", "name": "寒意", "maxLevel": 3, "cooldown": 0, "desc": "普攻附带 10%/15%/20% 减速效果" }
+      ]
+    },
+    {
+      "id": "hero_ze_ze",
+      "name": "雷霆之主",
+      "dotaRef": "zuus",
+      "type": "ranged_magic",
+      "rarity": "common",
+      "rarityWeight": 60.0,
+      "role": "control",
+      "base": { "hp": 500, "str": 16, "agi": 12, "int": 27, "atk": 38, "atkInterval": 1.5, "range": 5, "armor": 5, "magicResist": 28, "moveSpeed": 3.6 },
+      "growth": { "str": 1.3, "agi": 1.0, "int": 2.8 },
+      "skills": [
+        { "id": "arc_lightning", "name": "电弧", "maxLevel": 3, "cooldown": 6, "desc": "弹射 2/3/4 个目标，每次 80/110/140 伤害" },
+        { "id": "lightning_bolt", "name": "闪电", "maxLevel": 3, "cooldown": 7, "desc": "对单个目标造成 100/150/200 伤害" },
+        { "id": "static_field", "name": "静电场", "maxLevel": 3, "cooldown": 16, "desc": "持续区域，范围内敌人每秒受 20/30/40 伤害" },
+        { "id": "god_strength", "name": "神佑之怒", "maxLevel": 3, "cooldown": 0, "desc": "普攻附带 12%/18%/24% 法强附加伤害" }
+      ]
+    },
+    {
+      "id": "hero_shi_ren",
+      "name": "巨噬者",
+      "dotaRef": "ogre",
+      "type": "melee_physical",
+      "rarity": "common",
+      "rarityWeight": 60.0,
+      "role": "tank",
+      "base": { "hp": 1050, "str": 25, "agi": 12, "int": 10, "atk": 40, "atkInterval": 1.5, "range": 2, "armor": 9, "magicResist": 20, "moveSpeed": 3.5 },
+      "growth": { "str": 2.5, "agi": 1.0, "int": 0.8 },
+      "skills": [
+        { "id": "ignite", "name": "纵火", "maxLevel": 3, "cooldown": 12, "desc": "点燃目标，每秒 20/30/40 伤害，持续 4s" },
+        { "id": "multicast", "name": "多重施法", "maxLevel": 3, "cooldown": 15, "desc": "下次技能触发 2/3/4 次" },
+        { "id": "unrefined", "name": "未精炼矿石", "maxLevel": 3, "cooldown": 0, "desc": "受到伤害时积累护盾，最多 100/180/260" },
+        { "id": "bloodlust", "name": "嗜血", "maxLevel": 3, "cooldown": 0, "desc": "附近友军攻速 +8%/12%/16%" }
+      ]
+    },
+    {
+      "id": "hero_nai_jia",
+      "name": "碧海之女",
+      "dotaRef": "naga",
+      "type": "ranged_physical",
+      "rarity": "legendary",
+      "rarityWeight": 2.0,
+      "role": "support",
+      "base": { "hp": 620, "str": 18, "agi": 22, "int": 22, "atk": 40, "atkInterval": 1.3, "range": 6, "armor": 7, "magicResist": 26, "moveSpeed": 3.7 },
+      "growth": { "str": 1.6, "agi": 2.2, "int": 2.2 },
+      "skills": [
+        { "id": "rip_tide", "name": "退潮", "maxLevel": 3, "cooldown": 8, "desc": "击退并减速周围敌人" },
+        { "id": "wave_of_terror", "name": "惊涛骇浪", "maxLevel": 3, "cooldown": 10, "desc": "长条形伤害并眩晕 1/1.5/2s" },
+        { "id": "song", "name": "龙之鳞甲", "maxLevel": 3, "cooldown": 20, "desc": "自身获得减伤 20%/30%/40%" },
+        { "id": "reel_in", "name": "拖拽", "maxLevel": 3, "cooldown": 0, "desc": "远处敌人被牵引靠近，且自身攻速 +10%/15%/20%" }
+      ]
+    },
+    {
+      "id": "hero_xiu_li",
+      "name": "缚火者",
+      "dotaRef": "tinker",
+      "type": "ranged_physical",
+      "rarity": "rare",
+      "rarityWeight": 10.0,
+      "role": "carry",
+      "base": { "hp": 540, "str": 18, "agi": 26, "int": 20, "atk": 44, "atkInterval": 0.9, "range": 6, "armor": 6, "magicResist": 24, "moveSpeed": 3.8 },
+      "growth": { "str": 1.5, "agi": 2.6, "int": 1.9 },
+      "skills": [
+        { "id": "flak_shot", "name": "散射", "maxLevel": 3, "cooldown": 8, "desc": "散射多枚飞弹，每发 30/40/50 伤害" },
+        { "id": "laser", "name": "激光", "maxLevel": 3, "cooldown": 14, "desc": "持续激光束，每秒 60/85/110 伤害" },
+        { "id": "march_of_tanks", "name": "行军车", "maxLevel": 3, "cooldown": 20, "desc": "召唤攻城车，持续攻击周围敌人" },
+        { "id": "battery_assault", "name": "齐射", "maxLevel": 3, "cooldown": 0, "desc": "攻击附带溅射 20%/30%/40 伤害" }
+      ]
+    },
+    {
+      "id": "hero_lian_jin",
+      "name": "炼金",
+      "dotaRef": "alchemist",
+      "type": "ranged_magic",
+      "rarity": "common",
+      "rarityWeight": 60.0,
+      "role": "support",
+      "base": { "hp": 560, "str": 18, "agi": 14, "int": 26, "atk": 34, "atkInterval": 1.4, "range": 6, "armor": 6, "magicResist": 26, "moveSpeed": 3.6 },
+      "growth": { "str": 1.5, "agi": 1.1, "int": 2.6 },
+      "skills": [
+        { "id": "acid_spray", "name": "酸性喷雾", "maxLevel": 3, "cooldown": 12, "desc": "范围持续伤害并降低护甲" },
+        { "id": "heal", "name": "治疗药水", "maxLevel": 3, "cooldown": 18, "desc": "治疗附近友军 80/140/200 HP" },
+        { "id": "unstable_concoction", "name": "不稳定药剂", "maxLevel": 3, "cooldown": 10, "desc": "投掷药剂，溅射伤害并给予友军增益" },
+        { "id": "chem_crit", "name": "化学暴击", "maxLevel": 3, "cooldown": 0, "desc": "对中毒目标暴击几率 +10%/15%/20%" }
+      ]
+    },
+    {
+      "id": "hero_chen_mo",
+      "name": "缄默者",
+      "dotaRef": "silencer",
+      "type": "ranged_physical",
+      "rarity": "rare",
+      "rarityWeight": 10.0,
+      "role": "support",
+      "base": { "hp": 580, "str": 17, "agi": 20, "int": 24, "atk": 36, "atkInterval": 1.2, "range": 6, "armor": 6, "magicResist": 28, "moveSpeed": 3.7 },
+      "growth": { "str": 1.4, "agi": 1.8, "int": 2.4 },
+      "skills": [
+        { "id": "glaives", "name": "秘银飞刃", "maxLevel": 3, "cooldown": 6, "desc": "远程飞刃弹射，沉默 2s" },
+        { "id": "arcane_curse", "name": "奥术诅咒", "maxLevel": 3, "cooldown": 12, "desc": "沉默目标并使其受到额外伤害" },
+        { "id": "last_word", "name": "绝命", "maxLevel": 3, "cooldown": 16, "desc": "对低血量目标造成高额伤害" },
+        { "id": "glaive_wave", "name": "飞刃潮", "maxLevel": 3, "cooldown": 0, "desc": "普攻发射额外飞刃，造成 20%/30%/40 伤害" }
+      ]
+    },
+    {
+      "id": "hero_di_mo",
+      "name": "夜刃",
+      "dotaRef": "antimage",
+      "type": "melee_physical",
+      "rarity": "rare",
+      "rarityWeight": 10.0,
+      "role": "assassin",
+      "base": { "hp": 500, "str": 19, "agi": 30, "int": 10, "atk": 46, "atkInterval": 0.85, "range": 2, "armor": 5, "magicResist": 20, "moveSpeed": 4.4 },
+      "growth": { "str": 1.5, "agi": 3.0, "int": 0.7 },
+      "skills": [
+        { "id": "counterspell", "name": "法术反制", "maxLevel": 3, "cooldown": 15, "desc": "抵消一次伤害并回复 HP" },
+        { "id": "blink", "name": "相位跃迁", "maxLevel": 3, "cooldown": 12, "desc": "闪现 4 格并获得 20%/25%/30% 闪避" },
+        { "id": "enemy_blade", "name": "敌刃", "maxLevel": 3, "cooldown": 0, "desc": "对低血量目标造成 15%/20%/25% 额外伤害" },
+        { "id": "mage_slayer", "name": "法师杀手", "maxLevel": 3, "cooldown": 0, "desc": "对施法者单位伤害 +10%/15%/20%" }
+      ]
+    },
+    {
+      "id": "hero_shang_yu",
+      "name": "赏金",
+      "dotaRef": "bounty_hunter",
+      "type": "melee_physical",
+      "rarity": "common",
+      "rarityWeight": 60.0,
+      "role": "assassin",
+      "base": { "hp": 540, "str": 21, "agi": 25, "int": 12, "atk": 44, "atkInterval": 0.95, "range": 2, "armor": 6, "magicResist": 22, "moveSpeed": 4.3 },
+      "growth": { "str": 1.9, "agi": 2.5, "int": 1.0 },
+      "skills": [
+        { "id": "shuriken", "name": "飞刀", "maxLevel": 3, "cooldown": 5, "desc": "投掷飞刀造成 50/70/90 伤害" },
+        { "id": "shadow_sit", "name": "暗影潜伏", "maxLevel": 3, "cooldown": 14, "desc": "隐身并加速，可穿透敌人" },
+        { "id": "track", "name": "追踪", "maxLevel": 3, "cooldown": 12, "desc": "标记目标，提升全队对其伤害" },
+        { "id": "bounty", "name": "赏金", "maxLevel": 3, "cooldown": 0, "desc": "击杀敌人额外获得 30/50/80 金币" }
+      ]
+    }
+  ]
+}

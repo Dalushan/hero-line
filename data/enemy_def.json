@@ -1,0 +1,13 @@
+{
+  "enemies": [
+    { "id": "creep_melee", "name": "步兵", "tag": "physical", "hpMul": 1.0, "atkMul": 1.0, "armor": 2, "magicResist": 0, "moveSpeed": 1.6, "atkInterval": 1.2, "bountyMul": 1.0, "expMul": 1.0, "damageToBase": 10 },
+    { "id": "creep_ranged", "name": "弓手", "tag": "physical", "hpMul": 0.8, "atkMul": 0.9, "armor": 1, "magicResist": 5, "moveSpeed": 1.6, "atkInterval": 1.6, "bountyMul": 1.1, "expMul": 1.1, "damageToBase": 8, "attackRange": 4 },
+    { "id": "creep_mage", "name": "法师兵", "tag": "magic", "hpMul": 0.7, "atkMul": 1.4, "armor": 0, "magicResist": 20, "moveSpeed": 1.5, "atkInterval": 2.0, "bountyMul": 1.3, "expMul": 1.3, "damageToBase": 14, "attackRange": 5 },
+    { "id": "creep_armored", "name": "重甲兵", "tag": "physical", "hpMul": 1.6, "atkMul": 1.1, "armor": 12, "magicResist": 10, "moveSpeed": 1.3, "atkInterval": 1.4, "bountyMul": 1.5, "expMul": 1.4, "damageToBase": 16 },
+    { "id": "creep_shield", "name": "护盾兵", "tag": "magic", "hpMul": 1.1, "atkMul": 1.0, "armor": 4, "magicResist": 25, "moveSpeed": 1.5, "atkInterval": 1.5, "bountyMul": 1.4, "expMul": 1.3, "damageToBase": 12, "shieldRatio": 0.6 },
+    { "id": "creep_swift", "name": "疾行兵", "tag": "physical", "hpMul": 0.6, "atkMul": 0.9, "armor": 1, "magicResist": 0, "moveSpeed": 2.6, "atkInterval": 0.9, "bountyMul": 1.2, "expMul": 1.2, "damageToBase": 9 },
+    { "id": "creep_splitter", "name": "分裂兵", "tag": "physical", "hpMul": 1.3, "atkMul": 1.0, "armor": 3, "magicResist": 5, "moveSpeed": 1.5, "atkInterval": 1.3, "bountyMul": 1.5, "expMul": 1.4, "damageToBase": 12, "splitInto": "creep_swift", "splitCount": 2 },
+    { "id": "elite_sentinel", "name": "哨兵", "tag": "elite", "hpMul": 6.0, "atkMul": 2.0, "armor": 10, "magicResist": 20, "moveSpeed": 1.4, "atkInterval": 1.3, "bountyMul": 8.0, "expMul": 6.0, "damageToBase": 40 },
+    { "id": "boss_warden", "name": "深渊守望者", "tag": "boss", "hpMul": 30.0, "atkMul": 3.0, "armor": 18, "magicResist": 35, "moveSpeed": 1.2, "atkInterval": 1.5, "bountyMul": 25.0, "expMul": 20.0, "damageToBase": 100, "attackRange": 4 }
+  ]
+}

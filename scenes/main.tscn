@@ -1,0 +1,50 @@
+[gd_scene load_steps=6 format=3 uid="uid://ctdhd1main01"]
+
+[ext_resource type="Script" path="res://scripts/game/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/game/battlefield.gd" id="2_bf"]
+[ext_resource type="Script" path="res://scripts/game/support_panel.gd" id="3_sp"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_hud"]
+font_size = 18
+
+[node name="Main" type="Node"]
+script = ExtResource("1_main")
+
+[node name="Battlefield" type="Node2D" parent="."]
+script = ExtResource("2_bf")
+
+[node name="GridLayer" type="Node2D" parent="Battlefield"]
+
+[node name="UnitLayer" type="Node2D" parent="Battlefield"]
+
+[node name="FxLayer" type="Node2D" parent="Battlefield"]
+
+[node name="HUD" type="CanvasLayer" parent="Battlefield"]
+
+[node name="Margin" type="MarginContainer" parent="Battlefield/HUD"]
+offset_right = 320.0
+offset_bottom = 140.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+
+[node name="VBox" type="VBoxContainer" parent="Battlefield/HUD/Margin"]
+theme_override_constants/separation = 6
+
+[node name="WaveLabel" type="Label" parent="Battlefield/HUD/Margin/VBox"]
+text = "第 0 / 30 波"
+
+[node name="GoldLabel" type="Label" parent="Battlefield/HUD/Margin/VBox"]
+text = "金币: 0"
+
+[node name="BaseHpLabel" type="Label" parent="Battlefield/HUD/Margin/VBox"]
+text = "基地 HP: 1000 / 1000"
+
+[node name="HeroLabel" type="Label" parent="Battlefield/HUD/Margin/VBox"]
+autowrap_mode = 3
+
+[node name="SupportPanel" type="Control" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("3_sp")
