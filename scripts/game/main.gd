@@ -395,7 +395,10 @@ func _open_draft() -> void:
 	if support_panel:
 		support_panel.visible = true
 		support_panel.setup(cards)
-		support_panel.card_chosen.connect(_on_card_chosen)
+		# ★ 必须用 has_signal：support_panel 声明为 Control 类型，
+		#   直接访问 .card_chosen 会运行时报 "Invalid access to property"
+		if support_panel.has_signal("card_chosen"):
+			support_panel.connect("card_chosen", _on_card_chosen)
 
 
 func _on_card_chosen(index: int) -> void:
@@ -414,7 +417,9 @@ func _on_card_chosen(index: int) -> void:
 		var spot := _pick_placement()
 		if spot != Vector2i(-1, -1):
 			h["cell"] = spot
+			h["_placed"] = true
 			state.grid.set_cell(spot, TDGrid.Cell.BLOCKED)
+			state.grid.recompute_flow()   # ★ 占位后必须重算流场
 		state.heroes.append(h)
 		_spawn_hero_node(h)
 	_begin_prepare()

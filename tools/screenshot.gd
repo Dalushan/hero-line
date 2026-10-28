@@ -6,6 +6,7 @@ extends SceneTree
 const OUT_PATH := "user://screenshot.png"
 const RUN_SECONDS := 12.0
 const OPEN_SHOP := true     ## 截图时是否打开商店面板
+const DRAFT_WAVE := 1       ## >0 时直接触发支援二选一面板(验证渲染)
 
 var _main_node: Node = null
 var _shop_opened := false
@@ -28,6 +29,10 @@ func _init() -> void:
 func _process(delta: float) -> bool:
 	if _main_node != null and not _shop_opened:
 		_shop_opened = true
+		if DRAFT_WAVE > 0:
+			# 快进到指定波次，验证支援二选一
+			_fast_forward(_main_node, DRAFT_WAVE)
+			return false
 		if _main_node.has_method("_toggle_shop"):
 			_main_node.call("_toggle_shop")
 			print("[screenshot] 已打开商店面板")
@@ -48,3 +53,13 @@ func _process(delta: float) -> bool:
 		print("[screenshot] 保存失败 err=%d" % err)
 	quit(0)
 	return true
+
+
+func _fast_forward(main: Node, target_wave: int) -> void:
+	# 直接调 _open_draft 验证支援面板渲染（比等 5 波快）
+	print("[screenshot] 触发支援二选一面板")
+	if main.has_method("_open_draft"):
+		main.call("_open_draft")
+		var spp = main.get_node_or_null("OverlayLayer/SupportPanel")
+		if spp:
+			print("[screenshot] support_panel visible=%s children=%d" % [spp.visible, spp.get_child_count()])
