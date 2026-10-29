@@ -1,9 +1,15 @@
+# Godot 导入缓存 (可重新生成)
 .godot/
+
+# 构建产物
 build/
-export_presets.cfg
-*.tmp
-.DS_Store
 exports/
+*.tmp
+
+# ★ 不要忽略 export_presets.cfg !
+#   它定义了 "Windows Desktop" 导出预设, 没有它就无法 --export-release
+#   (刚踩过: .gitignore 里误加了这行, 结果 clone 出来的工程导不出包)
+
+# 本地临时文件
 .git_commit_msg.txt
-build/
-.godot/
+.DS_Store

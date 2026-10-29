@@ -1,0 +1,28 @@
+# ===== 文本文件行尾统一 =====
+# 仓库内统一存 LF (git 内部归一化), 检出时按平台转换。
+* text=auto
+
+# ★ .bat 必须是 CRLF
+#   cmd.exe 遇到 LF-only 的 .bat 会解析错乱 (报 "'t' 不是内部或外部命令")
+#   eol=crlf 保证任何机器 clone 出来都是 CRLF, 不依赖本地 core.autocrlf 设置。
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制资源不做行尾转换
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.pck binary
+*.exe binary
+*.tpz binary
+*.apk binary
+
+# Godot 导入缓存不进版本库
+.godot/ export_presets.cfg.import
+*.translation
