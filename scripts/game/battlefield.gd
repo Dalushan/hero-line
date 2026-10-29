@@ -38,7 +38,17 @@ var _range_circle: Node2D
 func setup(run_state: TDRunState) -> void:
 	state = run_state
 	_redraw_grid()
+	_connect_hud_input()
 	_update_hud()
+
+
+func _connect_hud_input() -> void:
+	# ★ 信号只能连一次：_update_hud 每帧跑，在里面 connect 会重复连接导致多次触发
+	if hud == null:
+		return
+	var hero_label := hud.get_node_or_null("Margin/VBox/HeroLabel")
+	if hero_label and not hero_label.gui_input.is_connected(_on_hero_label_input):
+		hero_label.gui_input.connect(_on_hero_label_input)
 
 
 func _ready() -> void:
@@ -225,3 +235,28 @@ func _build_mode_name() -> String:
 			return "升级防御塔"
 		_:
 			return ""
+
+
+## 玩家点击 HUD 上的英雄名 → 把该英雄切成"待部署"状态
+## 未部署的英雄（支援抽到但场上没位置）可以由玩家手动放到路线的空位上
+func select_hero_for_deploy(hero: Dictionary) -> void:
+	pending_hero_def = hero.get("_def", {})
+	build_mode = BuildMode.HERO if not pending_hero_def.is_empty() else BuildMode.NONE
+	_update_hover()
+
+
+func _on_hero_label_input(event: InputEvent, label: Label) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mb := event as InputEventMouseButton
+	if not mb.pressed or mb.button_index != MOUSE_BUTTON_LEFT:
+		return
+	if state == null:
+		return
+	# 解析点击的是哪个英雄名（按名字匹配）
+	var text := label.text
+	for h in state.heroes:
+		var nm := "%s Lv%d" % [String(h.get("name", "")), int(h.get("level", 1))]
+		if text.contains(nm):
+			select_hero_for_deploy(h)
+			return

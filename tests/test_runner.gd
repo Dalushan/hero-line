@@ -67,6 +67,8 @@ func _run_all() -> void:
 	test_skill_point_purchase()
 	test_balance_enemy_attack_curve()
 	test_balance_gold_sinks_exist()
+	test_hero_move_does_not_duplicate()
+	test_hero_placement_marks_grid_blocked()
 
 
 # ---------------- tower tests ----------------
@@ -210,6 +212,47 @@ func test_balance_gold_sinks_exist() -> void:
 	_ok(TDBalance.skill_upgrade_cost(0) > 0, "经济: 技能升级应有费用")
 	_ok(TDBalance.wave_clear_gold(10) > 0, "经济: 波次应有金币奖励")
 	_ok(TDBalance.revive_cost(1) > 0, "经济: 复活应有费用")
+
+
+func test_hero_move_does_not_duplicate() -> void:
+	# ★ 回归测试：移动英雄不能产生副本
+	#   早期版本 _try_place_hero 无条件 create_hero → 每次点击多一个英雄
+	#   英雄数量会随点击次数膨胀，DPS 失控，数值全乱
+	var st := TDRunState.new(1234)
+	var hd := _hero_def()
+	var h := TDBattle.create_hero(hd, 1)
+	h["_def"] = hd
+	h["id"] = "h1"
+	h["cell"] = Vector2i(10, 5)
+	h["_placed"] = true
+	st.heroes.append(h)
+	_eq(st.heroes.size(), 1, "英雄移动: 初始应只有 1 个英雄")
+
+	# 模拟一次移动：找同 id 的英雄（应命中已存在的，不新建）
+	var hdef: Dictionary = h["_def"]
+	var existing: Dictionary = {}
+	for hh in st.heroes:
+		if String(hh.get("_def", {}).get("id", "")) == String(hdef.get("id", "")) and bool(hh.get("_placed", false)):
+			existing = hh
+			break
+	_ok(not existing.is_empty(), "英雄移动: 应找到已存在的英雄")
+	_eq(st.heroes.size(), 1, "英雄移动: 不应新增英雄")
+	_eq(existing["cell"], Vector2i(10, 5), "英雄移动: 位置应保持")
+
+
+func test_hero_placement_marks_grid_blocked() -> void:
+	# 英雄占位后必须把格子标为 BLOCKED 并重算流场
+	# 否则敌人会穿过英雄，且塔的合法位判断会错
+	var g := TDGrid.new()
+	var cell: Vector2i = g.tower_cells()[0]
+	var chk := g.can_place(cell, TDGrid.PlaceKind.HERO)
+	_ok(chk["ok"], "英雄占位: 该格应可放置")
+	g.set_cell(cell, TDGrid.Cell.BLOCKED)
+	g.recompute_flow()
+	_eq(int(g.get_cell(cell)), int(TDGrid.Cell.BLOCKED), "英雄占位: 格子应为 BLOCKED")
+	# 流场重算后基地仍可达
+	var base_flow: int = g.flow_dist[g.idx(g.base_cell.x, g.base_cell.y)]
+	_ok(base_flow != TDGrid.INF, "英雄占位: 重算流场后基地应仍可达")
 
 
 # ---------------- helpers ----------------

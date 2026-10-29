@@ -132,15 +132,39 @@ func _try_upgrade_tower(cell: Vector2i) -> void:
 
 
 func _try_place_hero(cell: Vector2i) -> void:
+	# 两种情况：
+	# ① 选中的是已在场的英雄 → 把它移到新位置（先从旧格子解除占位）
+	# ② 选中的是新英雄（_def 有但还没入场）→ 新建并放置
 	var hdef: Dictionary = battlefield.pending_hero_def
 	if hdef.is_empty():
 		return
 	var chk := state.grid.can_place(cell, TDGrid.PlaceKind.HERO)
 	if not chk["ok"]:
 		return
+
+	# 找已有的同 id 英雄
+	var existing: Dictionary = {}
+	for h in state.heroes:
+		if String(h.get("_def", {}).get("id", "")) == String(hdef.get("id", "")) and bool(h.get("_placed", false)):
+			existing = h
+			break
+
+	if not existing.is_empty():
+		# 移动已有英雄：先释放旧格
+		var old_cell: Vector2i = existing.get("cell", Vector2i.ZERO)
+		if old_cell != cell:
+			state.grid.set_cell(old_cell, TDGrid.Cell.PATH)
+		existing["cell"] = cell
+		state.grid.set_cell(cell, TDGrid.Cell.BLOCKED)
+		state.grid.recompute_flow()   # ★ 占位后必须重算流场
+		if existing.has("_node") and existing["_node"] is Node2D:
+			(existing["_node"] as Node2D).position = battlefield.cell_to_world(cell) - Vector2(22, 22)
+		return
+
+	# 新英雄
 	var h := TDBattle.create_hero(hdef, 1)
 	h["_def"] = hdef
-	h["id"] = "h_%d" % state.heroes.size()
+	h["id"] = "h_%d_%d" % [state.wave, state.heroes.size()]
 	h["cell"] = cell
 	h["_placed"] = true
 	state.grid.set_cell(cell, TDGrid.Cell.BLOCKED)
